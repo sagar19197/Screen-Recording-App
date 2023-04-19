@@ -12,6 +12,7 @@ import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.Log;
 import android.view.Display;
 import android.view.View;
 import android.widget.Toast;
@@ -23,14 +24,8 @@ public class MainActivity extends AppCompatActivity {
 
     private static final int REQUEST_CODE_SCREEN_CAPTURE = 1;
     private MediaProjectionManager mediaProjectionManager;
-    private MediaProjection mediaProjection;
-    private MediaRecorder mediaRecorder;
-    private VirtualDisplay virtualDisplay;
-    private int screenDensity;
-    private int screenWidth;
-    private int screenHeight;
-    private String videoPath;
-    private boolean isRecording;
+    private static MediaProjection mediaProjection;
+
 
     private ToggleButton my_button;
 
@@ -44,15 +39,6 @@ public class MainActivity extends AppCompatActivity {
         if(mediaProjectionManager == null){
             Toast.makeText(this, "Permission Denied",Toast.LENGTH_SHORT);
         }
-        else{
-            requestScreenCapture();
-        }
-        screenDensity = getResources().getDisplayMetrics().densityDpi;
-        Display display = getWindowManager().getDefaultDisplay();
-        Point size = new Point();
-        display.getSize(size);
-        screenWidth = size.x;
-        screenHeight = size.y;
 
 
         // Toggle Button
@@ -60,15 +46,14 @@ public class MainActivity extends AppCompatActivity {
         my_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (my_button.isChecked()) {
+                if (!my_button.isChecked()) {
                     // Stop recording
-                    my_button.setChecked(false);
                     stopRecording();
+                    my_button.setChecked(false);
                 } else {
                     // Start recording
-                    Toast.makeText(MainActivity.this, "Recording Started",Toast.LENGTH_SHORT).show();
-                    my_button.setChecked(true);
                     startRecording();
+                    my_button.setChecked(true);
                 }
             }
         });
@@ -84,7 +69,11 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_CODE_SCREEN_CAPTURE) {
             if (resultCode == RESULT_OK) {
+
                 mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data);
+                Intent intent = new Intent(this, ScreenRecorderService.class);
+                startService(intent);
+
             } else {
                 // Permission denied or user canceled
                 Toast.makeText(this,"Permission Denied",Toast.LENGTH_SHORT).show();
@@ -93,41 +82,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startRecording() {
-        // Create a MediaRecorder object
-        mediaRecorder = new MediaRecorder();
-        mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
-        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-        mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
-        mediaRecorder.setVideoSize(screenWidth, screenHeight);
-        mediaRecorder.setVideoFrameRate(30);
-        mediaRecorder.setVideoEncodingBitRate(3000000);
-        mediaRecorder.setOrientationHint(0);
-
-        // Create a file to save the video
-        videoPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/screen_recording_" + System.currentTimeMillis() + ".mp4";
-        mediaRecorder.setOutputFile(videoPath);
-
-        // Create a VirtualDisplay object and start recording
-        virtualDisplay = mediaProjection.createVirtualDisplay("ScreenCapture", screenWidth, screenHeight, screenDensity, DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, mediaRecorder.getSurface(), null, null);
-        try {
-            mediaRecorder.prepare();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        mediaRecorder.start();
-        isRecording = true;
+        requestScreenCapture();
     }
 
     private void stopRecording() {
-        if (isRecording) {
-            isRecording = false;
-            mediaRecorder.stop();
-            mediaRecorder.release();
-            virtualDisplay.release();
-            mediaProjection.stop();
-            Toast.makeText(this, "Screen recording saved to " + videoPath, Toast.LENGTH_LONG).show();
-        }
+        Intent intent = new Intent(this, ScreenRecorderService.class);
+        stopService(intent);
+        mediaProjection = null;
+
     }
 
-
+    public static MediaProjection getMediaProjection() {
+        return mediaProjection;
+    }
 }
