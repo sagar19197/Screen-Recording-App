@@ -56,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
                     startService(intent);
 
                     // Start recording
-                   // startRecording();
+                    startRecording();
                     my_button.setChecked(true);
                 }
             }

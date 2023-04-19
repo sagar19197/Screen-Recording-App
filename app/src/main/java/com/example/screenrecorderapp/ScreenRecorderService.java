@@ -31,7 +31,6 @@ public class ScreenRecorderService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.d("ScreenRecordError","OnCreate sERVICE");
         createNotificationChannel();
     }
 
@@ -75,7 +74,7 @@ public class ScreenRecorderService extends Service {
 
             // Get the media projection from the activity
             mediaProjection = MainActivity.getMediaProjection();
-           // startRecording();
+           startRecording();
         }
         }
         return START_NOT_STICKY;
