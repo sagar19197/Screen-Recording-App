@@ -24,7 +24,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static final int REQUEST_CODE_SCREEN_CAPTURE = 1;
     private MediaProjectionManager mediaProjectionManager;
-    private static MediaProjection mediaProjection;
+    private static MediaProjection mediaProjection = null;
 
 
     private ToggleButton my_button;
@@ -51,8 +51,12 @@ public class MainActivity extends AppCompatActivity {
                     stopRecording();
                     my_button.setChecked(false);
                 } else {
+                    // Creating a ForeGroundService
+                    Intent intent = new Intent(MainActivity.this, ScreenRecorderService.class);
+                    startService(intent);
+
                     // Start recording
-                    startRecording();
+                   // startRecording();
                     my_button.setChecked(true);
                 }
             }
@@ -69,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_CODE_SCREEN_CAPTURE) {
             if (resultCode == RESULT_OK) {
-
+                Log.d("ScreenRecordError","ONACTTIVITY RESULT");
                 mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data);
                 Intent intent = new Intent(this, ScreenRecorderService.class);
                 startService(intent);

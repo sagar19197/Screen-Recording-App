@@ -14,6 +14,7 @@ import android.media.projection.MediaProjectionManager;
 import android.os.Build;
 import android.os.Environment;
 import android.os.IBinder;
+import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -30,6 +31,7 @@ public class ScreenRecorderService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        Log.d("ScreenRecordError","OnCreate sERVICE");
         createNotificationChannel();
     }
 
@@ -55,8 +57,7 @@ public class ScreenRecorderService extends Service {
                 .setContentText("Recording your screen...")
                 .setContentIntent(pendingIntent)
                 .setPriority(NotificationCompat.PRIORITY_LOW)
-                .setOngoing(true)
-                .addAction(R.drawable.ic_launcher_foreground, "Stop", pendingIntent);
+                .setOngoing(true);
 
         return builder.build();
     }
@@ -69,17 +70,13 @@ public class ScreenRecorderService extends Service {
             stopSelf();
         } else {
 
-
-            if (MainActivity.getMediaProjection() == null) {
-                // If the media projection is not available, stop the service
-                stopSelf();
-                return START_NOT_STICKY;
-            }
+            startForeground(NOTIFICATION_ID, createNotification());
+            if (MainActivity.getMediaProjection() != null) {
 
             // Get the media projection from the activity
             mediaProjection = MainActivity.getMediaProjection();
-            startForeground(NOTIFICATION_ID, createNotification());
-            startRecording();
+           // startRecording();
+        }
         }
         return START_NOT_STICKY;
     }
