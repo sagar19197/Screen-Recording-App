@@ -73,7 +73,6 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_CODE_SCREEN_CAPTURE) {
             if (resultCode == RESULT_OK) {
-                Log.d("ScreenRecordError","ONACTTIVITY RESULT");
                 mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data);
                 Intent intent = new Intent(this, ScreenRecorderService.class);
                 startService(intent);

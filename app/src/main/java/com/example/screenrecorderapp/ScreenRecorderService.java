@@ -5,7 +5,9 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.Point;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
 import android.media.MediaRecorder;
@@ -15,6 +17,8 @@ import android.os.Build;
 import android.os.Environment;
 import android.os.IBinder;
 import android.util.Log;
+import android.view.Display;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -93,6 +97,16 @@ public class ScreenRecorderService extends Service {
 
 
     private void startRecording() {
+
+        WindowManager window = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
+        screenDensity = getResources().getDisplayMetrics().densityDpi;
+        Display display = window.getDefaultDisplay();;
+        Point size = new Point();
+        display.getSize(size);
+        screenWidth = size.x;
+        screenHeight = size.y;
+        Log.d("ScreenError", "Reaching sTARTrECORD w="+screenWidth+" h="+screenHeight);
+
         // Create a MediaRecorder object
         mediaRecorder = new MediaRecorder();
         mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
@@ -100,20 +114,23 @@ public class ScreenRecorderService extends Service {
         mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
         mediaRecorder.setVideoSize(screenWidth, screenHeight);
         mediaRecorder.setVideoFrameRate(30);
-        mediaRecorder.setVideoEncodingBitRate(3000000);
-        mediaRecorder.setOrientationHint(0);
-
         // Create a file to save the video
         videoPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/screen_recording_" + System.currentTimeMillis() + ".mp4";
         mediaRecorder.setOutputFile(videoPath);
+        mediaRecorder.setVideoEncodingBitRate(3000000);
+        mediaRecorder.setOrientationHint(0);
 
-        // Create a VirtualDisplay object and start recording
-        virtualDisplay = mediaProjection.createVirtualDisplay("ScreenCapture", screenWidth, screenHeight, screenDensity, DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, mediaRecorder.getSurface(), null, null);
+
         try {
             mediaRecorder.prepare();
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        Log.d("ScreenError", "Reaching sTARTrECORD w="+videoPath);
+        // Create a VirtualDisplay object and start recording
+        virtualDisplay = mediaProjection.createVirtualDisplay("ScreenCapture", screenWidth, screenHeight, screenDensity, DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, mediaRecorder.getSurface(), null, null);
+
         mediaRecorder.start();
         isRecording = true;
     }
